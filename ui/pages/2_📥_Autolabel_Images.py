@@ -5,7 +5,8 @@ import streamlit as st
 import numpy as np
 
 from PIL import Image
-from ui_utils import plot_results, convert_pil_to_cv_image, save_dataset_as_zip, initialize_zero_shot_models, extract_labels, get_label_list_from_prompt
+from ui_utils import (plot_results, convert_pil_to_cv_image, save_dataset_as_zip, initialize_zero_shot_models,
+                      extract_labels, get_label_list_from_prompt, filter_predictions_by_score, BOX_COLOR_DICT)
 
 st.set_page_config(page_title="Autolabel Images", page_icon="📥")
 
@@ -93,6 +94,15 @@ def autolabel_and_export_tab(model):
             st.warning("Please upload at least one image.")
             cleanup_temp_dir()
         else:
+            with st.expander("Expand for more settings..."):
+                score_threshold = st.slider("Confidence Threshold:", 0.10, 1.00, 0.10)
+                image_width = st.slider("Image width:", 300, 1920, 1000)
+                bbox_color = BOX_COLOR_DICT[st.selectbox("Bounding Box Color:", list(BOX_COLOR_DICT.keys()))]
+                bbox_thickness = st.number_input("Bounding Box Thickness:", 1, 10, 4)
+
+            st.session_state.predictions_dict = filter_predictions_by_score(st.session_state.predictions_dict,
+                                                                            score_threshold)
+
             max_page_num = min(MAX_IMAGE_NUMBER, uploaded_image_number, len(st.session_state.images_dict))
 
             if uploaded_image_number > 1:
@@ -108,9 +118,11 @@ def autolabel_and_export_tab(model):
             selected_cv_image = np.array(selected_pil_image)
             annotated_image = plot_results(selected_cv_image, selected_image_predictions['scores'],
                                            selected_image_predictions['labels'],
-                                           selected_image_predictions['boxes'])
+                                           selected_image_predictions['boxes'],
+                                           color=bbox_color,
+                                           thickness=bbox_thickness)
 
-            st.image(annotated_image, caption=f"Annotated image for prompt: {prompt}", use_column_width=True)
+            st.image(annotated_image, caption=f"Annotated image for prompt: {prompt}", width=image_width)
 
             st.download_button(
                 label="Download Dataset as ZIP",

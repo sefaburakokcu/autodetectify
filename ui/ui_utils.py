@@ -56,6 +56,31 @@ def extract_labels(model, images_dict, text_queries):
     return predictions_dict
 
 
+def filter_predictions_by_score(predictions_dict, score_threshold):
+    filtered_predictions_dict = {}
+    for image_name, predictions in predictions_dict.items():
+        filtered_scores = []
+        filtered_labels = []
+        filtered_boxes = []
+
+        for score, label, box in zip(predictions['scores'], predictions['labels'], predictions['boxes']):
+            if score >= score_threshold:
+                filtered_scores.append(score)
+                filtered_labels.append(label)
+                filtered_boxes.append(box)
+
+        filtered_predictions = {
+            'scores': filtered_scores,
+            'labels': filtered_labels,
+            'boxes': filtered_boxes,
+            'image_width': predictions['image_width'],
+            'image_height': predictions['image_height']
+        }
+        filtered_predictions_dict[image_name] = filtered_predictions
+
+    return filtered_predictions_dict
+
+
 def convert_to_yolo_format(predictions_dict, label_list):
     yolo_labels_dict = {}
     for image_name, predictions in predictions_dict.items():
@@ -181,8 +206,12 @@ def convert_cv_to_pil_image(cv_image):
 COLORS = [[0.000, 0.447, 0.741], [0.850, 0.325, 0.098], [0.929, 0.694, 0.125],
           [0.494, 0.184, 0.556], [0.466, 0.674, 0.188], [0.301, 0.745, 0.933]]
 
+BOX_COLOR_DICT = {
+    "green": (0, 255, 0), "blue": (255, 0, 0), "red": (0, 0, 255)
+}
 
-def plot_results(org_img, scores, labels, boxes):
+
+def plot_results(org_img, scores, labels, boxes, thickness=None, color=None):
     img = org_img.copy()
     colors = COLORS * 100
     for score, label, (xmin, ymin, xmax, ymax), c in zip(scores, labels, boxes, colors):
@@ -190,17 +219,17 @@ def plot_results(org_img, scores, labels, boxes):
             img=img,
             pt1=(int(xmin), int(ymin)),
             pt2=(int(xmax), int(ymax)),
-            color=c,
-            thickness=max(1, int(img.shape[1] / 750)),
+            color=c if color is None else color,
+            thickness=max(1, int(img.shape[1] / 750)) if thickness is None else thickness,
         )
         img = cv2.putText(
             img=img,
-            text=f"{label}{score:.2f}",
+            text=f"{label} {score:.2f}",
             org=(int(xmin), int(ymin) - 10),
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
             fontScale=0.5,
-            color=c,
-            thickness=1,
+            color=c if color is None else color,
+            thickness=max(1, int(img.shape[1] / 750)) if thickness is None else max(1, thickness // 2),
             lineType=cv2.LINE_AA,
         )
     return img
