@@ -1,0 +1,7 @@
+*.idea
+*weights
+TODO.txt
+
+temp*/
+__pycache__/
+

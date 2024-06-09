@@ -1,0 +1,9 @@
+streamlit
+streamlit-image-comparison
+pillow
+torch
+transformers
+numpy
+opencv-python
+
+
