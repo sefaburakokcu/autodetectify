@@ -14,12 +14,16 @@ exporting the dataset in various formats.
 
 ### Prompt Comparison
 
+![Prompt Comparison](assets/compare_prompts.png)  
+
 1. Navigate to the **Prompt Comparison** tab.
 2. Upload your images.
 3. Enter the prompts you want to compare.
 4. View and compare the object detection results side by side.
 
 ### Auto-Label and Export
+
+![Autolabel and Export](assets/autolabel_images.png)  
 
 1. Navigate to the **Auto-Label and Export** tab.
 2. Upload up to 50 images or a ZIP file containing images.
